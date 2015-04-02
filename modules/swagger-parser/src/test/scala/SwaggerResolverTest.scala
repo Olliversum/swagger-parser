@@ -102,4 +102,30 @@ class SwaggerResolverTest extends FlatSpec with Matchers {
     val param = params.get(0).asInstanceOf[QueryParameter]
     param.getName() should be ("skip")
   }
+  
+  it should "resolve operation parameter remote refs with two params for on ref" in {
+    val swagger = new Swagger()
+    swagger.path("/fun", new Path()
+      .get(new Operation()
+        .parameter(new RefParameter("#/parameters/SampleParameter"))))
+	
+	swagger.path("/fun2", new Path()
+      .get(new Operation()
+        .parameter(new RefParameter("#/parameters/SampleParameter"))))
+
+    swagger.parameter("SampleParameter", new QueryParameter()
+      .name("skip")
+      	.property(new IntegerProperty()))
+
+    val resolved = new SwaggerResolver().resolve(swagger, null)
+    val params = swagger.getPaths().get("/fun").getGet().getParameters()
+    params.size() should be (1)
+    val param = params.get(0).asInstanceOf[QueryParameter]
+    param.getName() should be ("skip")
+    
+    val params2 = swagger.getPaths().get("/fun").getGet().getParameters()
+    params2.size() should be (1)
+    val param2 = params.get(0).asInstanceOf[QueryParameter]
+    param2.getName() should be ("skip")
+  }
 }
